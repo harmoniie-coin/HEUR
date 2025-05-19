@@ -10,7 +10,15 @@ import {ERC20PermitUpgradeable} from "@openzeppelin/contracts-upgradeable/token/
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract HEUR is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ERC20PausableUpgradeable, AccessControlUpgradeable, ERC20PermitUpgradeable, UUPSUpgradeable {
+contract HEUR is
+    Initializable,
+    ERC20Upgradeable,
+    ERC20BurnableUpgradeable,
+    ERC20PausableUpgradeable,
+    AccessControlUpgradeable,
+    ERC20PermitUpgradeable,
+    UUPSUpgradeable
+{
     uint256 public constant VERSION = 1;
 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
@@ -38,7 +46,7 @@ contract HEUR is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ERC2
         address minter,
         address blacklister,
         address upgrader
-    ) initializer public {
+    ) public initializer {
         require(decimals_ <= 18, "Invalid decimals");
         require(defaultAdmin != address(0), "Invalid admin address");
         require(pauser != address(0), "Invalid pauser address");
@@ -94,7 +102,9 @@ contract HEUR is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ERC2
         return _blacklist[account];
     }
 
-    function destroyBlacklistedFunds(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function destroyBlacklistedFunds(
+        address account
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_blacklist[account], "Account not blacklisted");
         uint256 dirtyFunds = balanceOf(account);
         require(dirtyFunds > 0, "Account has zero balance");
@@ -106,24 +116,24 @@ contract HEUR is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, ERC2
         return _decimals;
     }
 
-    function _update(address from, address to, uint256 value)
-    internal
-    override(ERC20Upgradeable, ERC20PausableUpgradeable)
-    {
+    function _update(
+        address from,
+        address to,
+        uint256 value
+    ) internal override(ERC20Upgradeable, ERC20PausableUpgradeable) {
         if (_blacklist[from] || _blacklist[to]) {
             revert AccountBlacklisted(_blacklist[from] ? from : to);
         }
         super._update(from, to, value);
     }
 
-    function _authorizeUpgrade(address newImplementation)
-    internal
-    onlyRole(UPGRADER_ROLE)
-    override
-    {
-        require(newImplementation != address(0), "Invalid implementation address");
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyRole(UPGRADER_ROLE) {
+        require(
+            newImplementation != address(0),
+            "Invalid implementation address"
+        );
         emit ContractUpgraded(newImplementation);
     }
-
 }
-
